@@ -3,7 +3,7 @@ import {
   ensureSession, syncTraveler, logEncounter, logPractice,
   fetchReflections, postReflection as dbPostReflection,
   fetchTide, subscribeTide,
-} from "./src/lib/nakayaApi";
+} from "./nakayaApi";
 
 // ————————————————————————————————————————————————
 // NAKÃYA WORLD · v5
