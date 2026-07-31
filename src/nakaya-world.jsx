@@ -436,8 +436,14 @@ const weekKey = () => "w" + Math.floor((Date.now() / 86400000 + 4) / 7);
 const hashStr = (s) => { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return Math.abs(h); };
 const makeCode = () => Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
 
-async function sGet(key, shared = false) { try { const r = await window.storage.get(key, shared); return r && r.value ? JSON.parse(r.value) : null; } catch (e) { return null; } }
-async function sSet(key, val, shared = false) { try { await window.storage.set(key, JSON.stringify(val), shared); return true; } catch (e) { return false; } }
+// Saved in the browser, on this device. `shared` marks what used to be
+// world-wide storage: those keys stay per-device here, and become truly
+// shared as each one moves to Supabase. Both stay async, and both stay
+// quiet on failure, so a full quota or private browsing loses the save
+// without taking the app down.
+const sKey = (key, shared) => `nakaya:${shared ? "world" : "self"}:${key}`;
+async function sGet(key, shared = false) { try { const r = localStorage.getItem(sKey(key, shared)); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+async function sSet(key, val, shared = false) { try { localStorage.setItem(sKey(key, shared), JSON.stringify(val)); return true; } catch (e) { return false; } }
 
 const daysAgoStr = (n) => new Date(Date.now() - n * 86400000).toDateString();
 
