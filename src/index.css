@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* The app paints its own dark ground. This keeps the page from
+   flashing white before React mounts. */
+html,
+body {
+  background: #060608;
+  -webkit-font-smoothing: antialiased;
+}
