@@ -651,9 +651,11 @@ function Portrait({ being }) {
   const [c1, c2] = being.hues;
   if (!img) return <Aura hues={being.hues} size={200} legend={being.legend} />;
   return (
-    <div className="relative" style={{ width: "min(88vw, 360px)" }}>
+    // Full bleed and most of the height of the screen. Wider than the
+    // padded column it sits in, so the centering on <main> lets it run
+    // edge to edge on a phone. The being is the encounter; words come after.
+    <div className="relative" style={{ width: "min(100vw, 448px)", height: "min(76vh, 720px)" }}>
       <div className="absolute -inset-10 breathe" style={{ background: `radial-gradient(circle at 30% 20%, ${c1}55 0%, transparent 62%), radial-gradient(circle at 72% 82%, ${c2}45 0%, transparent 62%)`, filter: "blur(34px)", pointerEvents: "none" }} aria-hidden="true" />
-      <img src={img} alt="" aria-hidden="true" className="w-full" style={{ maxHeight: 460, objectFit: "cover", display: "block", visibility: "hidden" }} />
       <div className="clipIns">
         <img src={img} alt={being.name} className="absolute inset-0 w-full h-full" style={{ objectFit: "cover", display: "block" }} />
       </div>
@@ -903,8 +905,10 @@ export default function NakayaWorld() {
     setReflection(""); setPosted(false); setAnon(false); setSendOpen(false); setSendNote(""); setWall([]);
     loadWall(b);
     setScreen("reveal");
-    const totalStages = b.lines.length + 6;
-    for (let i = 1; i <= totalStages; i++) { const id = setTimeout(() => setStage(s => Math.max(s, i)), 900 + i * 1100); timers.current.push(id); }
+    // The being arrives first, alone. A second later everything they have
+    // to say arrives at once, in one breath rather than line by line.
+    const id = setTimeout(() => setStage(1), 1000);
+    timers.current.push(id);
   };
 
   const connect = (force = false) => {
@@ -1371,10 +1375,13 @@ Nakãya is a world that mirrors ours.<br />Its beings speak about your life.
 
         {/* REVEAL */}
         {screen === "reveal" && being && (
-          <div className="w-full flex flex-col items-center" onClick={() => setStage(99)}>
+          <div className="w-full flex flex-col items-center" onClick={() => setStage(1)}>
             <div className="rise flex flex-col items-center pt-2">
               <Portrait being={being} />
-              <div className="text-center mt-8">
+            </div>
+
+            {stage >= 1 && (
+              <div className="text-center mt-8 rise">
                 <h1 className="display" style={{ fontSize: 38 }}>{being.name}</h1>
                 <p className="mono mt-3">
                   <span>{being.word} · </span>
@@ -1384,19 +1391,21 @@ Nakãya is a world that mirrors ours.<br />Its beings speak about your life.
                 <span className="lineIn" style={{ background: REGION_COLOR[being.region] || "#8E8B96" }} aria-hidden="true" />
                 {returning > 1 && <p className="mono mt-3">Visits {returning}{knowsYou ? " · they remember you" : ""}</p>}
               </div>
-            </div>
+            )}
 
-            <div className="serif text-center mt-9 space-y-4" style={{ fontSize: 20, lineHeight: 1.65 }}>
-              {being.lines.map((l, i) => (stage >= i + 1 ? <p key={i} className="rise">{l}</p> : null))}
-            </div>
+            {stage >= 1 && (
+              <div className="serif text-center mt-9 space-y-4 rise" style={{ fontSize: 20, lineHeight: 1.65 }}>
+                {being.lines.map((l, i) => <p key={i}>{l}</p>)}
+              </div>
+            )}
 
             <div className="w-full mt-12">
-              {stage >= being.lines.length + 1 && (
+              {stage >= 1 && (
                 <div className="rise"><Section label="Who they are" first>
                   <p className="serif" style={{ fontSize: 16, lineHeight: 1.75 }}>{being.about}</p>
                 </Section></div>
               )}
-              {stage >= being.lines.length + 2 && (
+              {stage >= 1 && (
                 <div className="rise"><Section label="The mirror · which side are you on?" dot="river">
                   <Eyebrow>If this is you</Eyebrow>
                   <p className="serif" style={{ fontSize: 16, lineHeight: 1.75 }}>{being.river}</p>
@@ -1406,7 +1415,7 @@ Nakãya is a world that mirrors ours.<br />Its beings speak about your life.
                   </>)}
                 </Section></div>
               )}
-              {stage >= being.lines.length + 3 && (
+              {stage >= 1 && (
                 <div className="rise" onClick={(e) => e.stopPropagation()}><Section label="A small practice" dot={being.hues[1]}>
                   <p className="serif" style={{ fontSize: 16, lineHeight: 1.75 }}>{being.practice}</p>
                   {state.deeds?.[being.id]?.last === todayStr() ? (
@@ -1420,12 +1429,12 @@ Nakãya is a world that mirrors ours.<br />Its beings speak about your life.
               )}
             </div>
 
-            {stage >= being.lines.length + 4 && (
+            {stage >= 1 && (
               <p className="serif italic text-center rise" style={{ fontSize: 22, lineHeight: 1.5, marginTop: 44 }}>{being.question}</p>
             )}
 
             {/* REFLECTION WALL */}
-            {stage >= being.lines.length + 5 && (
+            {stage >= 1 && (
               <div className="w-full rise" onClick={(e) => e.stopPropagation()}>
                 <Section label={`Reflections · ${wall.length}`} dot="river">
                   {!posted ? (
@@ -1456,7 +1465,7 @@ Nakãya is a world that mirrors ours.<br />Its beings speak about your life.
               </div>
             )}
 
-            {stage >= being.lines.length + 6 && !dialogueOpen && (
+            {stage >= 1 && !dialogueOpen && (
               <div className="rise flex flex-col items-center gap-5 mt-11 w-full" onClick={(e) => e.stopPropagation()}>
                 <Btn primary onClick={openDialogue}>Talk with {being.legend || being.shadow ? "it" : "them"}</Btn>
                 {!sendOpen ? (
